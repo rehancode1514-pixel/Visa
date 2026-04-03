@@ -298,7 +298,7 @@ export default function App() {
             </div>
             <input type="file" ref={photoInputRef} onChange={handleUpdatePhoto} className="hidden" accept="image/*" />
             <div className="space-y-0.5">
-              <h1 className="font-display font-black text-slate-900 text-xl tracking-tight uppercase italic">VisaAgent<span className="text-blue-600">.AI</span></h1>
+              <h1 className="font-display font-black text-slate-900 text-xl tracking-tight uppercase italic">VISA<span className="text-blue-600"> AI</span></h1>
               <div className="flex items-center gap-2">
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-1.5 py-0.5 rounded">v3.0 PRO</span>
                 <div className="flex items-center gap-1.5 ml-1">
@@ -432,7 +432,7 @@ export default function App() {
             <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/10">
               <Bot className="w-5 h-5 text-white" />
             </div>
-            <span className="font-display font-black text-slate-900 text-xs uppercase tracking-tight italic">VisaAgent<span className="text-blue-600">.AI</span></span>
+            <span className="font-display font-black text-slate-900 text-xs uppercase tracking-tight italic">VISA<span className="text-blue-600"> AI</span></span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             <a href="#" className="hover:text-blue-600 transition-colors">Documentation</a>
