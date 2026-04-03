@@ -35,10 +35,14 @@ export const registerUser = async (req: Request, res: Response) => {
         token: generateToken(user.id),
       });
     } else {
-      res.status(400).json({ message: 'Invalid user data' });
+      res.status(400).json({ message: 'Failed to create user record' });
     }
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    console.error('[AUTH REGISTER ERROR]:', error);
+    res.status(500).json({ 
+      message: 'Registration failed during database operation',
+      error: error.message 
+    });
   }
 };
 
@@ -58,9 +62,14 @@ export const loginUser = async (req: Request, res: Response) => {
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    console.error('[AUTH LOGIN ERROR]:', error);
+    res.status(500).json({ 
+      message: 'Login failed during database operation',
+      error: error.message 
+    });
   }
 };
+
 
 export const getMe = async (req: any, res: Response) => {
   try {
