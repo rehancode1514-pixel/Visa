@@ -1,0 +1,8 @@
+{
+  "name": "VFS Automator Pro",
+  "description": "Advanced visa appointment booking bot with automatic OCR, MRZ validation, and live session handoff.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
