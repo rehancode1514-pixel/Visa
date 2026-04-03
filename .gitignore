@@ -6,3 +6,15 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Database
+/dev.db
+/dev.db-journal
+
+# Prisma
+/src/generated/prisma
+/prisma/dev.db
+/prisma/dev.db-journal
+node_modules/.prisma
+!/prisma/migrations/
+

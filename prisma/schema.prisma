@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String                @id @default(uuid())
+  email               String                @unique
+  password_hash       String
+  created_at          DateTime              @default(now())
+
+  profile             Profile?
+  externalCredentials ExternalCredentials[]
+  visaApplications    VisaApplication[]
+  botLogs             BotLog[]
+  notifications       Notification[]
+}
+
+model Profile {
+  id              String   @id @default(uuid())
+  user_id         String   @unique
+  full_name       String
+  passport_number String
+  nationality     String
+  dob             String
+  expiry_date     String
+  profile_photo   String?
+  passport_photo  String?
+
+  user            User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model ExternalCredentials {
+  id           String   @id @default(uuid())
+  user_id      String
+  vfs_email    String
+  vfs_password String
+
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model VisaApplication {
+  id         String   @id @default(uuid())
+  user_id    String
+  country    String
+  visa_type  String
+  status     String   @default("pending")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model BotLog {
+  id        String   @id @default(uuid())
+  user_id   String
+  action    String
+  status    String
+  timestamp DateTime @default(now())
+  metadata  String // JSON string for SQLite
+
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  user_id     String
+  message     String
+  type        String
+  read_status Boolean  @default(false)
+
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
