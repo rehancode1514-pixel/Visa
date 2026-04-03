@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "tsx src/server/index.ts",
-    "build": "vite build",
+    "build": "prisma generate && vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
   },
+
   "dependencies": {
     "@google/genai": "^1.29.0",
     "@prisma/client": "^5.22.0",
