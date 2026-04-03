@@ -13,12 +13,12 @@ if (!('getRandomValues' in _crypto)) {
   _crypto.getRandomValues = _crypto.webcrypto.getRandomValues.bind(_crypto.webcrypto);
 }
 
-import authRoutes from './routes/auth.routes.js';
-import profileRoutes from './routes/profile.routes.js';
-import visaRoutes from './routes/visa.routes.js';
-import botRoutes from './routes/bot.routes.js';
-import ocrRoutes from './routes/ocr.routes.js';
-import { db } from './db.js';
+import authRoutes from './routes/auth.routes';
+import profileRoutes from './routes/profile.routes';
+import visaRoutes from './routes/visa.routes';
+import botRoutes from './routes/bot.routes';
+import ocrRoutes from './routes/ocr.routes';
+import { db } from './db';
 
 const app = express();
 
@@ -29,10 +29,23 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Health Check
 app.get('/api/health', async (_req, res) => {
   try {
+    console.log('[HEALTH CHECK]: Checking database connectivity...');
     await db.$queryRaw`SELECT 1`;
-    res.json({ status: 'ok', database: 'connected', timestamp: new Date() });
+    console.log('[HEALTH CHECK]: Database connected successfully');
+    res.json({ 
+      status: 'ok', 
+      database: 'connected', 
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
   } catch (err: any) {
-    res.status(500).json({ status: 'error', database: 'disconnected', message: err.message });
+    console.error('[HEALTH CHECK ERROR]:', err.message);
+    res.status(500).json({ 
+      status: 'error', 
+      database: 'disconnected', 
+      message: err.message,
+      stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
+    });
   }
 });
 
