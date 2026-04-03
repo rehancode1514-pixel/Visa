@@ -96,7 +96,7 @@ export default function LoginView({ onLogin }: LoginViewProps) {
               </div>
             </div>
             <h1 className="text-4xl font-display font-black text-white tracking-tight uppercase italic flex items-center justify-center gap-2">
-              VisaAgent<span className="text-blue-500">.AI</span>
+              VISA<span className="text-blue-500"> AI</span>
             </h1>
             <p className="text-slate-400 font-medium">Your global immigration journey starts here.</p>
           </div>
