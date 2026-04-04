@@ -11,8 +11,8 @@ export const uploadPassport = async (req: Request, res: Response) => {
     
     res.json({
       message: 'Passport uploaded successfully',
-      filename: req.file.filename,
-      path: req.file.path
+      filename: req.file.originalname,
+      size: req.file.size
     });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
