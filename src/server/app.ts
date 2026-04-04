@@ -25,6 +25,8 @@ const app = express();
 app.use(cors({
   origin: [
     'https://visa-flame.vercel.app',
+    'https://visa-wine-gamma.vercel.app',
+    /^https:\/\/.*\.vercel\.app$/,
     /^http:\/\/localhost(:\d+)?$/,
   ],
   credentials: true,
