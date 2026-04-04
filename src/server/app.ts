@@ -37,7 +37,13 @@ app.get('/api/health', (_req, res) => {
   res.status(200).json({ status: "OK" });
 });
 
-// Make sure uploads directory exists (skip on serverless environments)
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Ensure uploads directory exists (skip on serverless environments)
 try {
   if (!fs.existsSync('uploads')) {
     fs.mkdirSync('uploads');
@@ -52,6 +58,19 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/applications', visaRoutes);
 app.use('/api/bot', botRoutes);
 app.use('/api', ocrRoutes);
+
+// Static Assets (Vite build output)
+const distPath = path.join(__dirname, '../../dist');
+if (fs.existsSync(distPath)) {
+  console.log(`[SERVER]: Serving static files from ${distPath}`);
+  app.use(express.static(distPath));
+  
+  // SPA Fallback for React routing
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 // Global Error Handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
