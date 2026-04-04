@@ -84,6 +84,14 @@ export const loginUser = async (req: Request, res: Response) => {
 
     // 4. Password Comparison
     console.log(`[LOGIN_DEBUG]: User found. Comparing passwords...`);
+    if (!user.password_hash) {
+      console.error(`[LOGIN_ERROR]: Password hash missing for user: ${email}`);
+      return res.status(500).json({
+        message: 'User account is improperly configured (MISSING_HASH)',
+        error: 'ACCOUNT_CONFIG_ERROR'
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password_hash);
     
     if (!isMatch) {
@@ -112,16 +120,21 @@ export const loginUser = async (req: Request, res: Response) => {
     if (err.code?.startsWith('P')) {
       console.error(`[LOGIN_DATABASE_ERROR]: Prisma Code ${err.code}`);
       return res.status(500).json({
-        message: 'Database connection issue. Please try again.',
+        message: `Database error: ${err.message}`,
         error: 'DATABASE_FAILURE',
         code: err.code
       });
     }
 
+    // EXPOSE ERROR FOR DEBUGGING ON RAILWAY
     return res.status(500).json({ 
       message: 'Internal server error during login',
       error: 'SERVER_ERROR',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+      debug: {
+        name: err.name || 'UnknownError',
+        message: err.message || 'No message available',
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      }
     });
   }
 };

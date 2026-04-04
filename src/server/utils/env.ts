@@ -19,5 +19,12 @@ export function validateEnv() {
 }
 
 export const getJwtSecret = () => {
-  return process.env.JWT_SECRET || 'super-secret-default-key-change-me';
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+       throw new Error('JWT_SECRET is missing in production environment');
+    }
+    return 'super-secret-default-key-change-me';
+  }
+  return secret;
 };
