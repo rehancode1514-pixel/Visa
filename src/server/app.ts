@@ -45,11 +45,12 @@ app.get('/api/health', async (_req, res) => {
       environment: process.env.NODE_ENV || 'development'
     });
   } catch (err: any) {
-    console.error('[HEALTH CHECK ERROR]:', err.message);
+    console.error('[HEALTH CHECK ERROR]: Prisma Connection Failed:', err);
     res.status(500).json({ 
       status: 'error', 
       database: 'disconnected', 
       message: err.message,
+      code: err.code, // Prisma error code (e.g., P2002)
       stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
     });
   }
@@ -74,9 +75,9 @@ app.use('/api', ocrRoutes);
 // Global Error Handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('[SERVER ERROR]:', err);
-  res.status(500).json({ 
+  res.status(err.status || 500).json({ 
     message: 'Internal Server Error',
-    error: process.env.NODE_ENV === 'production' ? 'See server logs' : err.message 
+    error: process.env.NODE_ENV === 'production' ? err.message : err.stack 
   });
 });
 

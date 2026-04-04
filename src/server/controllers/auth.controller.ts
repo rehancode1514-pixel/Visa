@@ -50,22 +50,30 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    console.log(`[AUTH LOGIN]: Attempting login for ${email}`);
     const user = await db.user.findUnique({ where: { email } });
 
     if (user && (await bcrypt.compare(password, user.password_hash))) {
+      console.log(`[AUTH LOGIN]: Login successful for ${email}`);
       res.json({
         id: user.id,
         email: user.email,
         token: generateToken(user.id),
       });
     } else {
+      console.warn(`[AUTH LOGIN]: Invalid credentials for ${email}`);
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error: any) {
-    console.error('[AUTH LOGIN ERROR]:', error);
+    console.error('[AUTH LOGIN ERROR]: Prisma Query Failed:', error);
     res.status(500).json({ 
       message: 'Login failed during database operation',
-      error: error.message 
+      error: error.message,
+      code: error.code // Prisma error code (e.g., P2021 Table does not exist)
     });
   }
 };
