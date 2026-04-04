@@ -49,13 +49,19 @@ export const registerUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    console.log('[AUTH DEBUG]: Headers:', req.headers);
+    console.log(`[AUTH DEBUG]: Attempting login for ${email || 'undefined'}`);
+    console.log('[AUTH DEBUG]: Body keys:', Object.keys(req.body || {}));
 
     // Validation
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      console.warn(`[AUTH LOGIN]: Missing credentials. email:${!!email}, password:${!!password}`);
+      return res.status(400).json({ 
+        error: 'Email and password are required',
+        received: { email: !!email, password: !!password }
+      });
     }
 
-    console.log(`[AUTH LOGIN]: Attempting login for ${email}`);
     const user = await db.user.findUnique({ where: { email } });
 
     // Handle user not found
