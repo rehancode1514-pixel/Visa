@@ -46,23 +46,34 @@ export default function LoginView({ onLogin }: LoginViewProps) {
         const data = await res.json();
         onLogin({ email: data.email, token: data.token, id: data.id });
       } else if (res.status === 401) {
-        // Automatically try to register to make it easy to use
-        const regRes = await apiFetch('/api/auth/register', {
-          method: 'POST',
-          body: { email, password }
-        });
-        if (regRes.ok) {
-          const data = await regRes.json();
-          onLogin({ email: data.email, token: data.token, id: data.id });
+        const err = await res.json();
+        // If it's a legitimate 401 (Invalid password), don't auto-register if the error is specific
+        if (err.error === 'INVALID_PASSWORD') {
+          setError(err.message || 'Invalid password');
         } else {
-          setError('Failed to authenticate or register');
+          // Fallback to auto-registration for missing accounts (old behavior)
+          const regRes = await apiFetch('/api/auth/register', {
+            method: 'POST',
+            body: { email, password }
+          });
+          if (regRes.ok) {
+            const data = await regRes.json();
+            onLogin({ email: data.email, token: data.token, id: data.id });
+          } else {
+            const regErr = await regRes.json();
+            setError(regErr.message || 'Failed to authenticate or register');
+          }
         }
       } else {
         const err = await res.json();
-        setError(err.message || 'Authentication failed');
+        const errorMessage = err.message || err.error || 'Authentication failed';
+        const errorCode = err.error ? ` [${err.error}]` : '';
+        setError(`${errorMessage}${errorCode}`);
+        console.error('[LOGIN ERROR]:', err);
       }
     } catch (e: any) {
-      setError('System error connecting to Auth node');
+      console.error('[SYSTEM ERROR]:', e);
+      setError('System connection error. Please check your internet connection.');
     } finally {
       setIsLoading(false);
     }

@@ -47,51 +47,89 @@ export const registerUser = async (req: Request, res: Response) => {
 };
 
 export const loginUser = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  
   try {
-    const { email, password } = req.body;
-    console.log('[AUTH DEBUG]: Headers:', req.headers);
-    console.log(`[AUTH DEBUG]: Attempting login for ${email || 'undefined'}`);
-    console.log('[AUTH DEBUG]: Body keys:', Object.keys(req.body || {}));
-
-    // Validation
-    if (!email || !password) {
-      console.warn(`[AUTH LOGIN]: Missing credentials. email:${!!email}, password:${!!password}`);
-      return res.status(400).json({ 
-        error: 'Email and password are required',
-        received: { email: !!email, password: !!password }
+    console.log(`[AUTH LOGIN]: Attempt started for email: ${email || 'undefined'}`);
+    
+    // 1. Initial Dependency Checks
+    if (!process.env.DATABASE_URL) {
+      console.error('[AUTH ERROR]: DATABASE_URL is missing in environment variables');
+      return res.status(500).json({ 
+        message: 'Database configuration error',
+        error: 'DATABASE_URL_MISSING'
       });
     }
 
+    if (!process.env.JWT_SECRET) {
+      console.error('[AUTH ERROR]: JWT_SECRET is missing in environment variables');
+      return res.status(500).json({ 
+        message: 'Auth configuration error',
+        error: 'JWT_SECRET_MISSING'
+      });
+    }
+
+    // 2. Input Validation
+    if (!email || !password) {
+      console.warn(`[AUTH LOGIN]: Missing credentials. email:${!!email}, password:${!!password}`);
+      return res.status(400).json({ 
+        message: 'Email and password are required',
+        error: 'MISSING_CREDENTIALS'
+      });
+    }
+
+    // 3. Database Lookup
+    console.log(`[AUTH LOGIN]: Querying database for ${email}`);
     const user = await db.user.findUnique({ where: { email } });
 
-    // Handle user not found
     if (!user) {
       console.warn(`[AUTH LOGIN]: User not found: ${email}`);
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ 
+        message: 'No account found with this email address',
+        error: 'USER_NOT_FOUND' 
+      });
     }
 
-    // Password comparison
+    // 4. Password Verification
+    console.log(`[AUTH LOGIN]: Verifying password for ${email}`);
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    
     if (!isPasswordValid) {
       console.warn(`[AUTH LOGIN]: Invalid password for ${email}`);
-      return res.status(401).json({ error: 'Invalid password' });
+      return res.status(401).json({ 
+        message: 'Invalid password. Please try again.',
+        error: 'INVALID_PASSWORD' 
+      });
     }
 
-    // JWT Secret check
-    if (!process.env.JWT_SECRET) {
-      console.error('[AUTH ERROR]: JWT_SECRET is not defined');
-      return res.status(500).json({ error: 'Internal server configuration error' });
-    }
-
-    console.log(`[AUTH LOGIN]: Login successful for ${email}`);
-    res.json({
+    // 5. Success
+    console.log(`[AUTH LOGIN]: Success for ${email}. Generating token.`);
+    const token = generateToken(user.id);
+    
+    return res.status(200).json({
       id: user.id,
       email: user.email,
-      token: generateToken(user.id),
+      token,
+      message: 'Login successful'
     });
+
   } catch (err: any) {
-    console.error('LOGIN ERROR:', err);
-    return res.status(500).json({ error: err.message });
+    console.error('[AUTH LOGIN CRITICAL ERROR]:', err);
+    
+    // Handle Prisma Specific Connection Errors
+    if (err.code?.startsWith('P1')) {
+      return res.status(500).json({
+        message: 'Database connection failed. Please try again later.',
+        error: err.code || 'PRISMA_ERROR',
+        details: process.env.NODE_ENV !== 'production' ? err.message : undefined
+      });
+    }
+
+    return res.status(500).json({ 
+      message: 'An internal server error occurred during login',
+      error: err.message || 'UNKNOWN_ERROR',
+      stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined
+    });
   }
 };
 

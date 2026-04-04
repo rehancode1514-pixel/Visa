@@ -75,9 +75,11 @@ if (fs.existsSync(distPath)) {
 // Global Error Handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('[SERVER ERROR]:', err);
-  res.status(err.status || 500).json({ 
-    message: 'Internal Server Error',
-    error: process.env.NODE_ENV === 'production' ? err.message : err.stack 
+  const status = err.status || 500;
+  res.status(status).json({ 
+    message: err.message || 'Internal Server Error',
+    error: err.code || (status === 500 ? 'INTERNAL_ERROR' : 'API_ERROR'),
+    details: process.env.NODE_ENV !== 'production' ? err.stack : undefined 
   });
 });
 
