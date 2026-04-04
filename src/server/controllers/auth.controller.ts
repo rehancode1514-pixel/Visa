@@ -50,31 +50,42 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
+    // Validation
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+      return res.status(400).json({ error: 'Email and password are required' });
     }
 
     console.log(`[AUTH LOGIN]: Attempting login for ${email}`);
     const user = await db.user.findUnique({ where: { email } });
 
-    if (user && (await bcrypt.compare(password, user.password_hash))) {
-      console.log(`[AUTH LOGIN]: Login successful for ${email}`);
-      res.json({
-        id: user.id,
-        email: user.email,
-        token: generateToken(user.id),
-      });
-    } else {
-      console.warn(`[AUTH LOGIN]: Invalid credentials for ${email}`);
-      res.status(401).json({ message: 'Invalid email or password' });
+    // Handle user not found
+    if (!user) {
+      console.warn(`[AUTH LOGIN]: User not found: ${email}`);
+      return res.status(404).json({ error: 'User not found' });
     }
-  } catch (error: any) {
-    console.error('[AUTH LOGIN ERROR]: Prisma Query Failed:', error);
-    res.status(500).json({ 
-      message: 'Login failed during database operation',
-      error: error.message,
-      code: error.code // Prisma error code (e.g., P2021 Table does not exist)
+
+    // Password comparison
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
+      console.warn(`[AUTH LOGIN]: Invalid password for ${email}`);
+      return res.status(401).json({ error: 'Invalid password' });
+    }
+
+    // JWT Secret check
+    if (!process.env.JWT_SECRET) {
+      console.error('[AUTH ERROR]: JWT_SECRET is not defined');
+      return res.status(500).json({ error: 'Internal server configuration error' });
+    }
+
+    console.log(`[AUTH LOGIN]: Login successful for ${email}`);
+    res.json({
+      id: user.id,
+      email: user.email,
+      token: generateToken(user.id),
     });
+  } catch (err: any) {
+    console.error('LOGIN ERROR:', err);
+    return res.status(500).json({ error: err.message });
   }
 };
 

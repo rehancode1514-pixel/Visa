@@ -33,27 +33,8 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Health Check
-app.get('/api/health', async (_req, res) => {
-  try {
-    console.log('[HEALTH CHECK]: Checking database connectivity...');
-    await db.$queryRaw`SELECT 1`;
-    console.log('[HEALTH CHECK]: Database connected successfully');
-    res.json({ 
-      status: 'ok', 
-      database: 'connected', 
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development'
-    });
-  } catch (err: any) {
-    console.error('[HEALTH CHECK ERROR]: Prisma Connection Failed:', err);
-    res.status(500).json({ 
-      status: 'error', 
-      database: 'disconnected', 
-      message: err.message,
-      code: err.code, // Prisma error code (e.g., P2002)
-      stack: process.env.NODE_ENV === 'production' ? undefined : err.stack
-    });
-  }
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({ status: "OK" });
 });
 
 // Make sure uploads directory exists (skip on serverless environments)

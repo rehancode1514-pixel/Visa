@@ -10,7 +10,7 @@
     "dev": "tsx src/server/index.ts",
     "build": "prisma generate && vite build",
     "build:railway": "prisma generate",
-    "start": "npx prisma migrate deploy || true && NODE_ENV=production tsx src/server/index.ts",
+    "start": "NODE_ENV=production tsx src/server/index.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
