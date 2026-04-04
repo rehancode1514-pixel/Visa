@@ -39,7 +39,7 @@ export default function LoginView({ onLogin }: LoginViewProps) {
     try {
       const res = await apiFetch('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, password })
+        body: { email, password }
       });
       
       if (res.ok) {
@@ -49,7 +49,7 @@ export default function LoginView({ onLogin }: LoginViewProps) {
         // Automatically try to register to make it easy to use
         const regRes = await apiFetch('/api/auth/register', {
           method: 'POST',
-          body: JSON.stringify({ email, password })
+          body: { email, password }
         });
         if (regRes.ok) {
           const data = await regRes.json();

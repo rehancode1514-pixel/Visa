@@ -167,7 +167,7 @@ export default function App() {
       const res = await apiFetch('/api/profile', {
         method: 'POST',
         token: user?.token,
-        body: JSON.stringify(newProfile)
+        body: newProfile
       });
       if (res.ok) {
         setProfile(newProfile);
@@ -193,7 +193,7 @@ export default function App() {
     try {
         const res = await apiFetch('/api/applications', {
             method: 'POST',
-            body: JSON.stringify(newApp)
+            body: newApp
         });
         if (res.ok) {
             const data = await res.json();
@@ -215,7 +215,7 @@ export default function App() {
         const res = await apiFetch('/api/applications', {
             method: 'POST',
             token: user?.token,
-            body: JSON.stringify(updatedApp)
+            body: updatedApp
         });
         if (res.ok) {
             setApplications(prev => prev.map(a => a.id === id ? updatedApp : a));
@@ -251,7 +251,7 @@ export default function App() {
             const res = await apiFetch('/api/profile', {
                 method: 'POST',
                 token: user?.token,
-                body: JSON.stringify(updatedProfile)
+                body: updatedProfile
             });
             if (res.ok) {
                 setProfile(updatedProfile);

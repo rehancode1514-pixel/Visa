@@ -14,8 +14,9 @@ export function apiUrl(path: string): string {
   return `${base}${p}`;
 }
 
-type FetchOptions = RequestInit & {
+type FetchOptions = Omit<RequestInit, 'body'> & {
   token?: string | null;
+  body?: any; // Allow objects for automatic JSON stringification
 };
 
 /**
