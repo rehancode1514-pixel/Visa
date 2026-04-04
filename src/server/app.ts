@@ -13,12 +13,12 @@ if (!('getRandomValues' in _crypto)) {
   _crypto.getRandomValues = _crypto.webcrypto.getRandomValues.bind(_crypto.webcrypto);
 }
 
-import authRoutes from './routes/auth.routes';
-import profileRoutes from './routes/profile.routes';
-import visaRoutes from './routes/visa.routes';
-import botRoutes from './routes/bot.routes';
-import ocrRoutes from './routes/ocr.routes';
-import { db } from './db';
+import authRoutes from './routes/auth.routes.js';
+import profileRoutes from './routes/profile.routes.js';
+import visaRoutes from './routes/visa.routes.js';
+import botRoutes from './routes/bot.routes.js';
+import ocrRoutes from './routes/ocr.routes.js';
+import { db } from './db.js';
 
 const app = express();
 
