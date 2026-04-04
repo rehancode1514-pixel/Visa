@@ -2,11 +2,11 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from '../db.js';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-default-key-change-me';
+import { getJwtSecret } from '../utils/env.js';
 
 const generateToken = (id: string) => {
-  return jwt.sign({ id }, JWT_SECRET, { expiresIn: '30d' });
+  const secret = getJwtSecret();
+  return jwt.sign({ id }, secret, { expiresIn: '30d' });
 };
 
 export const registerUser = async (req: Request, res: Response) => {
@@ -50,60 +50,52 @@ export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   
   try {
-    console.log(`[AUTH LOGIN]: Attempt started for email: ${email || 'undefined'}`);
+    console.log(`[LOGIN_DEBUG]: Login attempt started for: ${email || 'unknown'}`);
     
-    // 1. Initial Dependency Checks
+    // 1. Dependency/Environment Checks
     if (!process.env.DATABASE_URL) {
-      console.error('[AUTH ERROR]: DATABASE_URL is missing in environment variables');
+      console.error('[LOGIN_ERROR]: DATABASE_URL is missing in environment');
       return res.status(500).json({ 
-        message: 'Database configuration error',
-        error: 'DATABASE_URL_MISSING'
-      });
-    }
-
-    if (!process.env.JWT_SECRET) {
-      console.error('[AUTH ERROR]: JWT_SECRET is missing in environment variables');
-      return res.status(500).json({ 
-        message: 'Auth configuration error',
-        error: 'JWT_SECRET_MISSING'
+        message: 'Server configuration error (DB_MISSING)',
+        error: 'DATABASE_URL_NOT_SET'
       });
     }
 
     // 2. Input Validation
     if (!email || !password) {
-      console.warn(`[AUTH LOGIN]: Missing credentials. email:${!!email}, password:${!!password}`);
+      console.warn(`[LOGIN_DEBUG]: Missing credentials in request body`);
       return res.status(400).json({ 
         message: 'Email and password are required',
-        error: 'MISSING_CREDENTIALS'
+        error: 'MISSING_FIELDS'
       });
     }
 
-    // 3. Database Lookup
-    console.log(`[AUTH LOGIN]: Querying database for ${email}`);
+    // 3. User Lookup
+    console.log(`[LOGIN_DEBUG]: Looking up user: ${email}`);
     const user = await db.user.findUnique({ where: { email } });
 
     if (!user) {
-      console.warn(`[AUTH LOGIN]: User not found: ${email}`);
+      console.warn(`[LOGIN_DEBUG]: User not found: ${email}`);
       return res.status(404).json({ 
-        message: 'No account found with this email address',
+        message: 'Account not found',
         error: 'USER_NOT_FOUND' 
       });
     }
 
-    // 4. Password Verification
-    console.log(`[AUTH LOGIN]: Verifying password for ${email}`);
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    // 4. Password Comparison
+    console.log(`[LOGIN_DEBUG]: User found. Comparing passwords...`);
+    const isMatch = await bcrypt.compare(password, user.password_hash);
     
-    if (!isPasswordValid) {
-      console.warn(`[AUTH LOGIN]: Invalid password for ${email}`);
+    if (!isMatch) {
+      console.warn(`[LOGIN_DEBUG]: Password mismatch for: ${email}`);
       return res.status(401).json({ 
-        message: 'Invalid password. Please try again.',
+        message: 'Invalid credentials',
         error: 'INVALID_PASSWORD' 
       });
     }
 
     // 5. Success
-    console.log(`[AUTH LOGIN]: Success for ${email}. Generating token.`);
+    console.log(`[LOGIN_DEBUG]: Success! Generating token for: ${email}`);
     const token = generateToken(user.id);
     
     return res.status(200).json({
@@ -114,25 +106,25 @@ export const loginUser = async (req: Request, res: Response) => {
     });
 
   } catch (err: any) {
-    console.error('[AUTH LOGIN CRITICAL ERROR]:', err);
+    console.error('[LOGIN_CRITICAL_ERROR]:', err);
     
-    // Handle Prisma Specific Connection Errors
-    if (err.code?.startsWith('P1')) {
+    // Handle Prisma specific errors
+    if (err.code?.startsWith('P')) {
+      console.error(`[LOGIN_DATABASE_ERROR]: Prisma Code ${err.code}`);
       return res.status(500).json({
-        message: 'Database connection failed. Please try again later.',
-        error: err.code || 'PRISMA_ERROR',
-        details: process.env.NODE_ENV !== 'production' ? err.message : undefined
+        message: 'Database connection issue. Please try again.',
+        error: 'DATABASE_FAILURE',
+        code: err.code
       });
     }
 
     return res.status(500).json({ 
-      message: 'An internal server error occurred during login',
-      error: err.message || 'UNKNOWN_ERROR',
-      stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined
+      message: 'Internal server error during login',
+      error: 'SERVER_ERROR',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 };
-
 
 export const getMe = async (req: any, res: Response) => {
   try {
