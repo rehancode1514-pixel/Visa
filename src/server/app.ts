@@ -22,7 +22,13 @@ import { db } from './db';
 
 const app = express();
 
-app.use(cors({ origin: '*' }));
+app.use(cors({
+  origin: [
+    'https://visa-flame.vercel.app',
+    /^http:\/\/localhost(:\d+)?$/,
+  ],
+  credentials: true,
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 

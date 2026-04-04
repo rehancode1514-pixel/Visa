@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from './lib/api';
 import { 
   Shield, 
   Terminal,
@@ -88,13 +89,13 @@ export default function App() {
     const checkBackend = async () => {
       if (!user?.token) return;
       try {
-        const res = await fetch('/api/bot/status', {
+        const res = await apiFetch('/api/bot/status', {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
         const data = await res.json();
         if (res.ok) {
            // We might need a separate /api/profile call
-           const profileRes = await fetch('/api/profile', {
+           const profileRes = await apiFetch('/api/profile', {
              headers: { 'Authorization': `Bearer ${user.token}` }
            });
            
@@ -111,7 +112,7 @@ export default function App() {
              }
            }
            
-           const appsRes = await fetch('/api/applications', {
+           const appsRes = await apiFetch('/api/applications', {
              headers: { 'Authorization': `Bearer ${user.token}` }
            });
            if (appsRes.ok) {
@@ -163,12 +164,9 @@ export default function App() {
     setStatus(prev => ({ ...prev, state: 'discovery', currentStep: 'Discovery Engine', progress: 50 }));
     
     try {
-      const res = await fetch('/api/profile', {
+      const res = await apiFetch('/api/profile', {
         method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${user?.token}`
-        },
+        token: user?.token,
         body: JSON.stringify(newProfile)
       });
       if (res.ok) {
@@ -193,9 +191,8 @@ export default function App() {
     };
 
     try {
-        const res = await fetch('/api/applications', {
+        const res = await apiFetch('/api/applications', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newApp)
         });
         if (res.ok) {
@@ -215,12 +212,9 @@ export default function App() {
 
     const updatedApp = { ...app, status, lastUpdate: new Date().toISOString() };
     try {
-        const res = await fetch('/api/applications', {
+        const res = await apiFetch('/api/applications', {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user?.token}`
-            },
+            token: user?.token,
             body: JSON.stringify(updatedApp)
         });
         if (res.ok) {
@@ -235,9 +229,9 @@ export default function App() {
 
   const resetAll = async () => {
     if (confirm('Are you sure? This will clear all local and remote data.')) {
-        await fetch('/api/bot/reset', { 
+        await apiFetch('/api/bot/reset', { 
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${user?.token}` }
+            token: user?.token
         });
         handleLogout();
         window.location.reload();
@@ -254,12 +248,9 @@ export default function App() {
         const updatedProfile = { ...profile, profilePhoto: base64 };
         
         try {
-            const res = await fetch('/api/profile', {
+            const res = await apiFetch('/api/profile', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user?.token}`
-                },
+                token: user?.token,
                 body: JSON.stringify(updatedProfile)
             });
             if (res.ok) {

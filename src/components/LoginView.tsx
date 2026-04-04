@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiFetch } from '../lib/api';
 import { 
   Shield, 
   Lock, 
@@ -36,9 +37,8 @@ export default function LoginView({ onLogin }: LoginViewProps) {
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await apiFetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
       
@@ -47,9 +47,8 @@ export default function LoginView({ onLogin }: LoginViewProps) {
         onLogin({ email: data.email, token: data.token, id: data.id });
       } else if (res.status === 401) {
         // Automatically try to register to make it easy to use
-        const regRes = await fetch('/api/auth/register', {
+        const regRes = await apiFetch('/api/auth/register', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
         });
         if (regRes.ok) {

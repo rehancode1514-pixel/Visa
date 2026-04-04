@@ -9,6 +9,9 @@ export default defineConfig(({mode}) => {
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      // Expose to import.meta.env (Vite does this automatically for VITE_ prefixed vars,
+      // but we also expose it explicitly for safety)
+      'import.meta.env.VITE_API_BASE_URL': JSON.stringify(env.VITE_API_BASE_URL ?? ''),
     },
     resolve: {
       alias: {
@@ -17,6 +20,8 @@ export default defineConfig(({mode}) => {
     },
     server: {
       proxy: {
+        // In development, proxy /api to local backend (port 3000)
+        // This only applies when VITE_API_BASE_URL is not set
         '/api': {
           target: 'http://localhost:3000',
           changeOrigin: true,
